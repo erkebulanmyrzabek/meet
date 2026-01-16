@@ -13,9 +13,13 @@
     </header>
 
     <div class="video-container">
-      <div class="video-grid" :class="{ 'single': !remoteStream }">
+      <div class="video-grid" :class="{ 'single': !remoteStream, 'has-focus': focusedVideo }">
         <!-- Remote Video (or waiting state) -->
-        <div class="video-wrapper primary">
+        <div 
+          class="video-wrapper primary" 
+          :class="{ 'focused': focusedVideo === 'remote', 'minimized': focusedVideo === 'local' }"
+          @click="remoteStream && toggleFocus('remote')"
+        >
           <video v-if="remoteStream" ref="remoteVideo" autoplay playsinline class="video"></video>
           <div v-else class="waiting">
             <div class="spinner"></div>
@@ -25,7 +29,11 @@
         </div>
 
         <!-- Local Video (picture-in-picture style when remote exists) -->
-        <div class="video-wrapper" :class="{ 'pip': remoteStream }">
+        <div 
+          class="video-wrapper" 
+          :class="{ 'pip': remoteStream && !focusedVideo, 'focused': focusedVideo === 'local', 'minimized': focusedVideo === 'remote' }"
+          @click="toggleFocus('local')"
+        >
           <video ref="localVideo" autoplay muted playsinline class="video mirror"></video>
           <div class="label">You</div>
         </div>
@@ -96,6 +104,15 @@ export default {
     const videoEnabled = ref(true);
     const error = ref('');
     const copied = ref(false);
+    const focusedVideo = ref(null); // 'local' | 'remote' | null
+
+    const toggleFocus = (videoType) => {
+      if (focusedVideo.value === videoType) {
+        focusedVideo.value = null; // Exit fullscreen
+      } else {
+        focusedVideo.value = videoType; // Enter fullscreen
+      }
+    };
 
     const initializeCall = async () => {
       try {
@@ -162,6 +179,8 @@ export default {
       videoEnabled,
       error,
       copied,
+      focusedVideo,
+      toggleFocus,
       toggleAudio,
       toggleVideo,
       leaveCall,
@@ -257,6 +276,12 @@ export default {
   background: #262626;
   border-radius: 8px;
   overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.video-wrapper:hover {
+  border: 2px solid rgba(255, 255, 255, 0.3);
 }
 
 .video-wrapper.primary {
@@ -272,6 +297,29 @@ export default {
   height: 150px;
   z-index: 10;
   border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Focused state - takes full grid */
+.video-wrapper.focused {
+  position: fixed;
+  top: 4rem;
+  left: 0;
+  right: 0;
+  bottom: 5rem;
+  width: 100%;
+  height: calc(100vh - 9rem);
+  z-index: 20;
+  border-radius: 0;
+}
+
+/* Minimized state - small pip in corner */
+.video-wrapper.minimized {
+  position: fixed;
+  bottom: 6rem;
+  right: 1rem;
+  width: 160px;
+  height: 120px;
+  z-index: 15;
 }
 
 .video {
