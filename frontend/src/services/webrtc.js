@@ -11,12 +11,32 @@ class WebRTCService {
         this.roomCode = null;
         this.isInitiator = false;
 
-        // WebRTC configuration with STUN servers
+        // WebRTC configuration with STUN and TURN servers
         this.configuration = {
             iceServers: [
+                // Google STUN servers  
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+
+                // Free TURN server (OpenRelay by Metered)
+                {
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject',
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject',
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject',
+                },
             ],
+            iceCandidatePoolSize: 10,
         };
     }
 
@@ -156,6 +176,19 @@ class WebRTCService {
         // Handle connection state
         this.peerConnection.onconnectionstatechange = () => {
             console.log('Connection state:', this.peerConnection.connectionState);
+            if (this.peerConnection.connectionState === 'failed') {
+                console.log('❌ Connection failed. ICE state:', this.peerConnection.iceConnectionState);
+            }
+        };
+
+        // Handle ICE connection state
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log('ICE connection state:', this.peerConnection.iceConnectionState);
+        };
+
+        // Handle signaling state
+        this.peerConnection.onsignalingstatechange = () => {
+            console.log('Signaling state:', this.peerConnection.signalingState);
         };
     }
 
