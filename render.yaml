@@ -1,0 +1,33 @@
+services:
+  # Backend API Service
+  - type: web
+    name: meet-backend
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "daphne -b 0.0.0.0 -p $PORT backend.asgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: meet-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DJANGO_SETTINGS_MODULE
+        value: backend.settings
+      - key: ALLOWED_HOSTS
+        value: .onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://meet-frontend.onrender.com
+
+  # Redis for Channels
+  - type: redis
+    name: meet-redis
+    ipAllowList: []
+    plan: starter
+
+databases:
+  - name: meet-db
+    databaseName: meet
+    user: meet
