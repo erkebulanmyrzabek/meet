@@ -133,8 +133,18 @@ export default {
           }
         };
       } catch (err) {
-        error.value = 'Failed to join the meeting.';
         console.error('Error initializing call:', err);
+        
+        // Handle different error types
+        if (err.name === 'NotAllowedError') {
+          error.value = 'Camera/microphone access denied. Please allow permissions in your browser settings.';
+        } else if (err.name === 'NotFoundError') {
+          error.value = 'No camera or microphone found. Please connect a device.';
+        } else if (err.name === 'NotReadableError') {
+          error.value = 'Camera/microphone is already in use by another application.';
+        } else {
+          error.value = 'Failed to join the meeting. Please check your camera and microphone.';
+        }
       }
     };
 
