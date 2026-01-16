@@ -26,7 +26,7 @@
 
         <!-- Local Video (picture-in-picture style when remote exists) -->
         <div class="video-wrapper" :class="{ 'pip': remoteStream }">
-          <video ref="localVideo" autoplay muted playsinline class="video"></video>
+          <video ref="localVideo" autoplay muted playsinline class="video mirror"></video>
           <div class="label">You</div>
         </div>
       </div>
@@ -278,6 +278,10 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.mirror {
+  transform: scaleX(-1);
 }
 
 .label {
