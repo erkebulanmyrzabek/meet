@@ -1,5 +1,5 @@
-const API_BASE_URL = 'http://localhost:8001/api';
-const WS_BASE_URL = 'ws://localhost:8001/ws';
+const API_BASE_URL = 'https://meet-f4ff.onrender.com/api';
+const WS_BASE_URL = 'wss://meet-f4ff.onrender.com/ws';
 
 export default {
   baseURL: API_BASE_URL,
