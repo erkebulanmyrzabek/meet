@@ -1,54 +1,50 @@
 <template>
   <div class="room">
-    <div class="room-header">
+    <header class="header">
       <div class="room-info">
-        <h2>Meeting: {{ code }}</h2>
+        <span class="room-code">{{ code }}</span>
         <button @click="copyRoomCode" class="btn-copy">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M4 2a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H4zm0 2h8v8H4V4z"/>
-            <path d="M6 0a2 2 0 00-2 2h2V0z"/>
+            <path d="M4 2a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H4z" stroke="currentColor" fill="none"/>
           </svg>
-          {{ copied ? 'Copied!' : 'Copy Code' }}
+          {{ copied ? 'Copied' : 'Copy' }}
         </button>
       </div>
-    </div>
+    </header>
 
-    <div class="video-grid" :class="{ 'single-video': !remoteStream }">
-      <!-- Local Video -->
-      <div class="video-container local">
-        <video ref="localVideo" autoplay muted playsinline></video>
-        <div class="video-label">You</div>
-      </div>
+    <div class="video-container">
+      <div class="video-grid" :class="{ 'single': !remoteStream }">
+        <!-- Remote Video (or waiting state) -->
+        <div class="video-wrapper primary">
+          <video v-if="remoteStream" ref="remoteVideo" autoplay playsinline class="video"></video>
+          <div v-else class="waiting">
+            <div class="spinner"></div>
+            <p>Waiting for participant...</p>
+          </div>
+          <div v-if="remoteStream" class="label">Participant</div>
+        </div>
 
-      <!-- Remote Video -->
-      <div v-if="remoteStream" class="video-container remote">
-        <video ref="remoteVideo" autoplay playsinline></video>
-        <div class="video-label">Participant</div>
-      </div>
-      
-      <!-- Waiting State -->
-      <div v-else class="waiting-container">
-        <div class="waiting-content">
-          <div class="spinner"></div>
-          <p>Waiting for others to join...</p>
-          <p class="waiting-code">Share code: <strong>{{ code }}</strong></p>
+        <!-- Local Video (picture-in-picture style when remote exists) -->
+        <div class="video-wrapper" :class="{ 'pip': remoteStream }">
+          <video ref="localVideo" autoplay muted playsinline class="video"></video>
+          <div class="label">You</div>
         </div>
       </div>
     </div>
 
-    <!-- Controls -->
-    <div class="controls">
+    <footer class="controls">
       <button 
         @click="toggleAudio" 
         class="control-btn"
         :class="{ 'active': audioEnabled }"
+        :title="audioEnabled ? 'Mute' : 'Unmute'"
       >
-        <svg v-if="audioEnabled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <svg v-if="audioEnabled" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
           <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
         </svg>
-        <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/>
+        <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zM15 11.17L9 5.17V5c0-1.66 1.34-3 3-3s3 1.34 3 3v6.17zM4.27 3L3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03 .65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z"/>
         </svg>
       </button>
 
@@ -56,25 +52,24 @@
         @click="toggleVideo" 
         class="control-btn"
         :class="{ 'active': videoEnabled }"
+        :title="videoEnabled ? 'Turn off camera' : 'Turn on camera'"
       >
-        <svg v-if="videoEnabled" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <svg v-if="videoEnabled" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
         </svg>
-        <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M21 6.5l-4 4V7c0-.55-.45-1-1-1H9.82L21 17.18V6.5zM3.27 2L2 3.27 4.73 6H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.21 0 .39-.08.54-.18L19.73 21 21 19.73 3.27 2z"/>
         </svg>
       </button>
 
-      <button @click="leaveCall" class="control-btn btn-hang-up">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+      <button @click="leaveCall" class="control-btn leave-btn" title="Leave call">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.69.28-.26 0-.51-.1-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.28-.69.28-.26 0-.51-.1-.71-.29-.79-.74-1.68-1.36-2.66-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
         </svg>
       </button>
-    </div>
+    </footer>
 
-    <div v-if="error" class="error-banner">
-      {{ error }}
-    </div>
+    <div v-if="error" class="error-banner">{{ error }}</div>
   </div>
 </template>
 
@@ -104,13 +99,9 @@ export default {
 
     const initializeCall = async () => {
       try {
-        // Verify room exists
         await roomService.getRoomByCode(props.code);
-
-        // Initialize WebRTC
         await webrtcService.init(props.code, localVideo.value);
 
-        // Set up remote stream handler
         webrtcService.onRemoteStream = (stream) => {
           remoteStream.value = stream;
           if (remoteVideo.value) {
@@ -118,7 +109,6 @@ export default {
           }
         };
 
-        // Set up peer left handler
         webrtcService.onPeerLeft = () => {
           remoteStream.value = null;
           if (remoteVideo.value) {
@@ -126,7 +116,7 @@ export default {
           }
         };
       } catch (err) {
-        error.value = 'Failed to join the meeting. Please check your camera and microphone permissions.';
+        error.value = 'Failed to join the meeting.';
         console.error('Error initializing call:', err);
       }
     };
@@ -182,6 +172,10 @@ export default {
 </script>
 
 <style scoped>
+* {
+  box-sizing: border-box;
+}
+
 .room {
   height: 100vh;
   display: flex;
@@ -190,147 +184,162 @@ export default {
   color: white;
 }
 
-.room-header {
-  padding: 1rem 2rem;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
+.header {
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.5);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .room-info {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 1400px;
-  margin: 0 auto;
+  gap: 1rem;
 }
 
-.room-info h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
+.room-code {
+  font-size: 0.875rem;
+  font-family: 'Monaco', 'Courier New', monospace;
+  color: #d4d4d4;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
 }
 
 .btn-copy {
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 0.875rem;
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border-radius: 4px;
   color: white;
-  font-size: 0.9rem;
+  font-size: 0.8125rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
+  font-family: inherit;
 }
 
 .btn-copy:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.video-grid {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  padding: 1rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.video-grid.single-video {
-  grid-template-columns: 1fr;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .video-container {
+  flex: 1;
   position: relative;
-  background: #000;
-  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: #000;
 }
 
-.video-container video {
+.video-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.video-grid.single {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.video-grid:not(.single) {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.video-wrapper {
+  position: relative;
+  background: #262626;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video-wrapper.primary {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.video-wrapper.pip {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  width: 200px;
+  height: 150px;
+  z-index: 10;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.video-label {
+.label {
   position: absolute;
-  bottom: 1rem;
-  left: 1rem;
-  padding: 0.5rem 1rem;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  padding: 0.375rem 0.75rem;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: 4px;
+  font-size: 0.8125rem;
   font-weight: 500;
 }
 
-.waiting-container {
+.waiting {
+  width: 100%;
+  height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-}
-
-.waiting-content {
-  text-align: center;
+  gap: 1rem;
+  color: #a3a3a3;
 }
 
 .spinner {
-  width: 60px;
-  height: 60px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #667eea;
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #fff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 1.5rem;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-.waiting-content p {
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0.5rem 0;
-}
-
-.waiting-code {
-  font-size: 0.9rem;
-}
-
-.waiting-code strong {
-  color: #667eea;
-  font-family: monospace;
-  font-size: 1.1rem;
+.waiting p {
+  margin: 0;
+  font-size: 0.875rem;
 }
 
 .controls {
-  padding: 1.5rem;
+  padding: 1rem 1.5rem;
   display: flex;
   justify-content: center;
-  gap: 1rem;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
+  gap: 0.75rem;
+  background: rgba(0, 0, 0, 0.5);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .control-btn {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: none;
   background: rgba(255, 255, 255, 0.1);
   color: white;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -338,38 +347,108 @@ export default {
 
 .control-btn:hover {
   background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
+}
+
+.control-btn:active {
+  transform: scale(0.95);
 }
 
 .control-btn.active {
-  background: #667eea;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.btn-hang-up {
-  background: #ef4444;
-}
-
-.btn-hang-up:hover {
+.leave-btn {
   background: #dc2626;
 }
 
-.error-banner {
-  padding: 1rem;
-  background: rgba(239, 68, 68, 0.2);
-  border-top: 2px solid #ef4444;
-  text-align: center;
-  font-size: 0.9rem;
+.leave-btn:hover {
+  background: #b91c1c;
 }
 
-@media (max-width: 768px) {
-  .video-grid {
-    grid-template-columns: 1fr;
+.error-banner {
+  position: absolute;
+  top: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.875rem 1.25rem;
+  background: #dc2626;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  max-width: 90%;
+  text-align: center;
+  z-index: 100;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .header {
+    padding: 0.875rem 1rem;
   }
-  
+
   .room-info {
     flex-direction: column;
-    gap: 1rem;
     align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .video-grid {
+    padding: 0.25rem;
+    gap: 0.25rem;
+  }
+
+  .video-wrapper.pip {
+    width: 120px;
+    height: 90px;
+    bottom: 5rem;
+    right: 0.5rem;
+  }
+
+  .controls {
+    padding: 0.875rem 1rem;
+  }
+
+  .control-btn {
+    width: 56px;
+    height: 56px;
+  }
+
+  .label {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    bottom: 0.5rem;
+    left: 0.5rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .room-code {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.5rem;
+  }
+
+  .btn-copy {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+  }
+
+  .control-btn {
+    width: 52px;
+    height: 52px;
+  }
+
+  .video-wrapper.pip {
+    width: 100px;
+    height: 75px;
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 896px) and (orientation: landscape) {
+  .video-wrapper.pip {
+    width: 160px;
+    height: 120px;
+    bottom: 0.5rem;
   }
 }
 </style>

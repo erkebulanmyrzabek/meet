@@ -1,69 +1,52 @@
 <template>
   <div class="home">
-    <div class="hero">
-      <div class="logo">
-        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="60" height="60" rx="12" fill="url(#gradient)"/>
-          <path d="M20 25L30 20L40 25V35L30 40L20 35V25Z" fill="white" opacity="0.9"/>
-          <defs>
-            <linearGradient id="gradient" x1="0" y1="0" x2="60" y2="60">
-              <stop offset="0%" stop-color="#667eea"/>
-              <stop offset="100%" stop-color="#764ba2"/>
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-      <h1>Video Meetings for Everyone</h1>
-      <p class="subtitle">Connect, collaborate, and communicate with premium video calls</p>
-      
-      <div class="actions">
-        <button @click="createNewMeeting" class="btn btn-primary" :disabled="loading">
-          <svg v-if="!loading" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+    <div class="container">
+      <header class="header">
+        <div class="logo">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <rect x="6" y="6" width="20" height="20" rx="2" stroke="currentColor" stroke-width="2"/>
+            <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="20" cy="12" r="1.5" fill="currentColor"/>
+            <path d="M12 20h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
-          <span v-if="loading">Creating...</span>
-          <span v-else>New Meeting</span>
-        </button>
-        
-        <div class="divider">
-          <span>or</span>
+          <span>Meet</span>
         </div>
-        
-        <div class="join-form">
-          <input 
-            v-model="roomCode" 
-            type="text" 
-            placeholder="Enter meeting code"
-            @keyup.enter="joinMeeting"
-            class="input-code"
-          />
-          <button @click="joinMeeting" class="btn btn-secondary" :disabled="!roomCode || loading">
-            Join
+      </header>
+
+      <main class="main">
+        <h1>Video Meetings</h1>
+        <p class="subtitle">Secure, simple video calls</p>
+
+        <div class="actions">
+          <button @click="createNewMeeting" class="btn btn-primary" :disabled="loading">
+            <span v-if="loading">Creating...</span>
+            <span v-else>New Meeting</span>
           </button>
+
+          <div class="divider">
+            <span>or</span>
+          </div>
+
+          <div class="join-form">
+            <input 
+              v-model="roomCode" 
+              type="text" 
+              placeholder="Enter meeting code"
+              @keyup.enter="joinMeeting"
+              class="input"
+            />
+            <button @click="joinMeeting" class="btn btn-secondary" :disabled="!roomCode || loading">
+              Join
+            </button>
+          </div>
         </div>
-      </div>
-      
-      <div v-if="error" class="error-message">
-        {{ error }}
-      </div>
-    </div>
-    
-    <div class="features">
-      <div class="feature">
-        <div class="feature-icon">🎥</div>
-        <h3>HD Video</h3>
-        <p>Crystal clear video quality</p>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">🔒</div>
-        <h3>Secure</h3>
-        <p>End-to-end encrypted calls</p>
-      </div>
-      <div class="feature">
-        <div class="feature-icon">⚡</div>
-        <h3>Fast</h3>
-        <p>Instant connection, no delays</p>
-      </div>
+
+        <div v-if="error" class="error">{{ error }}</div>
+      </main>
+
+      <footer class="footer">
+        <p>Powered by WebRTC</p>
+      </footer>
     </div>
   </div>
 </template>
@@ -86,7 +69,7 @@ export default {
       error.value = '';
       
       try {
-        const room = await roomService.createRoom('Quick Meeting');
+        const room = await roomService.createRoom('Meeting');
         router.push(`/room/${room.code}`);
       } catch (err) {
         error.value = 'Failed to create meeting. Please try again.';
@@ -106,7 +89,7 @@ export default {
         await roomService.getRoomByCode(roomCode.value);
         router.push(`/room/${roomCode.value}`);
       } catch (err) {
-        error.value = 'Meeting not found. Please check the code.';
+        error.value = 'Meeting not found.';
         console.error('Error joining room:', err);
       } finally {
         loading.value = false;
@@ -125,96 +108,121 @@ export default {
 </script>
 
 <style scoped>
-.home {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+* {
+  box-sizing: border-box;
 }
 
-.hero {
-  text-align: center;
-  max-width: 600px;
-  margin-bottom: 4rem;
+.home {
+  min-height: 100vh;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 480px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .logo {
-  margin-bottom: 2rem;
-  animation: float 3s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #1a1a1a;
+  font-size: 1.25rem;
+  font-weight: 600;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+.logo svg {
+  color: #1a1a1a;
+}
+
+.main {
+  padding: 2rem 1.5rem;
 }
 
 h1 {
-  font-size: 3rem;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 1rem;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 0.5rem 0;
 }
 
 .subtitle {
-  font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 3rem;
+  color: #737373;
+  font-size: 0.9375rem;
+  margin: 0 0 2rem 0;
 }
 
 .actions {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  margin-bottom: 1rem;
+  gap: 1rem;
 }
 
 .btn {
-  padding: 1rem 2rem;
+  width: 100%;
+  padding: 0.875rem 1.5rem;
   border: none;
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transition: all 0.15s ease;
+  font-family: inherit;
 }
 
 .btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .btn-primary {
-  background: white;
-  color: #667eea;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  background: #1a1a1a;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #000;
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: white;
+  color: #1a1a1a;
+  border: 1px solid #d4d4d4;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #fafafa;
+  border-color: #a3a3a3;
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .divider {
   display: flex;
   align-items: center;
   gap: 1rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.9rem;
+  color: #a3a3a3;
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
 }
 
 .divider::before,
@@ -222,97 +230,106 @@ h1 {
   content: '';
   flex: 1;
   height: 1px;
-  background: rgba(255, 255, 255, 0.3);
+  background: #e5e5e5;
 }
 
 .join-form {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
-.input-code {
+.input {
   flex: 1;
-  padding: 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  color: white;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  padding: 0.875rem 1rem;
+  border: 1px solid #d4d4d4;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  transition: all 0.15s ease;
 }
 
-.input-code::placeholder {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.input-code:focus {
+.input:focus {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.15);
+  border-color: #1a1a1a;
 }
 
-.error-message {
+.input::placeholder {
+  color: #a3a3a3;
+}
+
+.error {
   margin-top: 1rem;
-  padding: 1rem;
-  background: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  border-radius: 8px;
-  color: white;
-  font-size: 0.9rem;
+  padding: 0.875rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #991b1b;
+  font-size: 0.875rem;
 }
 
-.features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
-  max-width: 800px;
-  width: 100%;
-}
-
-.feature {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  padding: 2rem;
+.footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e5e5;
   text-align: center;
-  transition: all 0.3s ease;
 }
 
-.feature:hover {
-  transform: translateY(-5px);
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+.footer p {
+  margin: 0;
+  color: #a3a3a3;
+  font-size: 0.8125rem;
 }
 
-.feature-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
+/* Mobile optimization */
+@media (max-width: 640px) {
+  .home {
+    padding: 0;
+    align-items: stretch;
+  }
 
-.feature h3 {
-  color: white;
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-}
+  .container {
+    max-width: 100%;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-.feature p {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-}
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 
-@media (max-width: 768px) {
   h1 {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
-  
-  .subtitle {
-    font-size: 1rem;
-  }
-  
+
   .join-form {
     flex-direction: column;
+  }
+
+  .btn-secondary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .header {
+    padding: 1rem;
+  }
+
+  .main {
+    padding: 1.5rem 1rem;
+  }
+
+  h1 {
+    font-size: 1.375rem;
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
   }
 }
 </style>
