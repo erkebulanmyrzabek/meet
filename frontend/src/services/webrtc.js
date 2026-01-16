@@ -11,12 +11,30 @@ class WebRTCService {
         this.roomCode = null;
         this.isInitiator = false;
 
-        // WebRTC configuration with STUN servers
+        // WebRTC configuration with STUN and TURN servers for NAT traversal
         this.configuration = {
             iceServers: [
+                // Google STUN servers
                 { urls: 'stun:stun.l.google.com:19302' },
                 { urls: 'stun:stun1.l.google.com:19302' },
+                // Free TURN servers from Metered (helps with NAT/Firewall)
+                {
+                    urls: 'turn:openrelay.metered.ca:80',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject',
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject',
+                },
+                {
+                    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+                    username: 'openrelayproject',
+                    credential: 'openrelayproject',
+                },
             ],
+            iceCandidatePoolSize: 10,
         };
     }
 
@@ -155,7 +173,22 @@ class WebRTCService {
 
         // Handle connection state
         this.peerConnection.onconnectionstatechange = () => {
-            console.log('Connection state:', this.peerConnection.connectionState);
+            const state = this.peerConnection.connectionState;
+            console.log('Connection state:', state);
+
+            if (state === 'failed' || state === 'disconnected') {
+                console.error('❌ Connection failed. ICE state:', this.peerConnection.iceConnectionState);
+                console.error('Signaling state:', this.peerConnection.signalingState);
+            }
+
+            if (state === 'connected') {
+                console.log('✅ WebRTC connection established!');
+            }
+        };
+
+        // Monitor ICE connection state
+        this.peerConnection.oniceconnectionstatechange = () => {
+            console.log('ICE connection state:', this.peerConnection.iceConnectionState);
         };
     }
 
